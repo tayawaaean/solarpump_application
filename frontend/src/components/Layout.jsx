@@ -5,8 +5,6 @@ export default function Layout() {
   return (
     <AppBar position="static">
       <Toolbar>
-        <Button color="inherit" component={Link} to="/">Login</Button>
-        <Button color="inherit" component={Link} to="/register">Register</Button>
       </Toolbar>
     </AppBar>
   );

@@ -7,6 +7,8 @@ const logger = require('./config/logger');
 const requestLogger = require('./middleware/requestLogger');
 const dataRoutes = require('./routes/dataRoutes');
 const authRoutes = require('./routes/authRoutes');
+const gasPriceRoutes = require('./routes/gasPriceRoutes');
+const currencyRoutes = require('./routes/currencyRoutes');
 require('./mqtt/mqttClient');
 
 const app = express();
@@ -28,6 +30,10 @@ app.use(requestLogger);
 // ✅ Routes
 app.use('/api/data', dataRoutes); // Protected
 app.use('/api/auth', authRoutes); // Public
+app.use('/api/gasprice', gasPriceRoutes); // New endpoint: /api/gasprice/philippines
+app.use('/api/currency', currencyRoutes);
+
+
 
 // ✅ Root test route
 app.get('/', (req, res) => {
