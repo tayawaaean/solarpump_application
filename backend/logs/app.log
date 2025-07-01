@@ -1,0 +1,114 @@
+[2025-06-30T07:03:06.763Z] INFO: Server running on http://localhost:3000
+[2025-06-30T07:03:06.783Z] INFO: MongoDB connected
+[2025-06-30T07:03:07.127Z] INFO: Connected to MQTT broker
+[2025-06-30T07:03:07.132Z] INFO: Subscribed to topic: arec/solarpump
+[2025-06-30T07:03:07.199Z] INFO: Sensor data saved at 2025-04-23T03:39:33.000Z
+[2025-06-30T07:08:50.110Z] INFO: 🚀 Server running at http://localhost:3000
+[2025-06-30T07:08:50.131Z] INFO: ✅ MongoDB connected
+[2025-06-30T07:08:50.137Z] INFO: Connected to MQTT broker
+[2025-06-30T07:08:50.143Z] INFO: Subscribed to topic: arec/solarpump
+[2025-06-30T07:08:50.198Z] INFO: Sensor data saved at 2025-04-23T03:39:33.000Z
+[2025-06-30T07:11:50.800Z] INFO: 🚀 Server running at http://localhost:3000
+[2025-06-30T07:11:50.821Z] INFO: ✅ MongoDB connected
+[2025-06-30T07:11:50.826Z] INFO: Connected to MQTT broker
+[2025-06-30T07:11:50.831Z] INFO: Subscribed to topic: arec/solarpump
+[2025-06-30T07:11:50.896Z] INFO: Sensor data saved at 2025-04-23T03:39:33.000Z
+[2025-06-30T07:21:10.079Z] INFO: 🚀 Server running at http://localhost:3000
+[2025-06-30T07:21:10.099Z] INFO: ✅ MongoDB connected
+[2025-06-30T07:21:10.104Z] INFO: Connected to MQTT broker
+[2025-06-30T07:21:10.110Z] INFO: Subscribed to topic: arec/solarpump
+[2025-06-30T07:21:10.166Z] INFO: Sensor data saved at 2025-04-23T03:39:33.000Z
+[2025-06-30T07:24:39.850Z] INFO: 🚀 Server running at http://localhost:3000
+[2025-06-30T07:24:39.872Z] INFO: ✅ MongoDB connected
+[2025-06-30T07:24:40.061Z] INFO: Connected to MQTT broker
+[2025-06-30T07:24:40.066Z] INFO: Subscribed to topic: arec/solarpump
+[2025-06-30T07:24:40.122Z] INFO: Sensor data saved at 2025-04-23T03:39:33.000Z
+[2025-06-30T07:26:32.643Z] INFO: 🚀 Server running at http://localhost:5000
+[2025-06-30T07:26:32.663Z] INFO: ✅ MongoDB connected
+[2025-06-30T07:26:32.668Z] INFO: Connected to MQTT broker
+[2025-06-30T07:26:32.676Z] INFO: Subscribed to topic: arec/solarpump
+[2025-06-30T07:26:32.728Z] INFO: Sensor data saved at 2025-04-23T03:39:33.000Z
+[2025-06-30T07:26:37.938Z] INFO: GET /
+[2025-06-30T07:26:38.012Z] INFO: GET /favicon.ico
+[2025-06-30T07:28:03.155Z] INFO: GET /api/auth/register
+[2025-06-30T07:28:53.722Z] INFO: POST /api/auth/register
+[2025-06-30T07:28:53.811Z] INFO: New user registered: testuser
+[2025-06-30T07:29:28.078Z] INFO: POST /api/auth/login
+[2025-06-30T07:29:28.151Z] INFO: User testuser logged in
+[2025-06-30T07:30:42.534Z] INFO: POST /api/data
+[2025-06-30T07:30:46.540Z] INFO: POST /api/data
+[2025-06-30T07:31:01.343Z] INFO: GET /api/data
+[2025-06-30T07:49:09.510Z] INFO: 🚀 Server running at http://localhost:5000
+[2025-06-30T07:49:09.532Z] INFO: ✅ MongoDB connected
+[2025-06-30T07:49:09.600Z] INFO: Connected to MQTT broker
+[2025-06-30T07:49:09.652Z] INFO: Subscribed to topic: arec/solarpump
+[2025-06-30T07:49:09.721Z] INFO: Sensor data saved at 2025-04-23T03:39:33.000Z
+[2025-06-30T07:51:15.250Z] INFO: 🚀 Server running at http://localhost:5000
+[2025-06-30T07:51:15.266Z] INFO: ✅ MongoDB connected
+[2025-06-30T07:51:15.276Z] INFO: Connected to MQTT broker
+[2025-06-30T07:51:15.282Z] INFO: Subscribed to topic: arec/solarpump
+[2025-06-30T07:51:15.332Z] INFO: Sensor data saved at 2025-04-23T03:39:33.000Z
+[2025-06-30T07:51:27.587Z] INFO: OPTIONS /api/auth/login
+[2025-06-30T07:52:03.155Z] INFO: OPTIONS /api/auth/login
+[2025-06-30T07:52:49.156Z] INFO: OPTIONS /api/auth/login
+[2025-06-30T07:52:50.208Z] INFO: OPTIONS /api/auth/login
+[2025-06-30T07:52:58.089Z] INFO: OPTIONS /api/auth/register
+[2025-06-30T07:54:59.832Z] INFO: 🚀 Server running at http://localhost:5000
+[2025-06-30T07:54:59.843Z] INFO: ✅ MongoDB connected
+[2025-06-30T07:54:59.937Z] INFO: Connected to MQTT broker
+[2025-06-30T07:54:59.941Z] INFO: Subscribed to topic: arec/solarpump
+[2025-06-30T07:55:00.002Z] INFO: Sensor data saved at 2025-04-23T03:39:33.000Z
+[2025-06-30T07:55:04.267Z] INFO: POST /api/auth/register
+[2025-06-30T07:55:04.344Z] INFO: New user registered: aean
+[2025-06-30T07:55:25.614Z] INFO: POST /api/auth/login
+[2025-06-30T07:55:25.694Z] INFO: User aean logged in
+[2025-06-30T08:07:43.069Z] INFO: POST /api/auth/login
+[2025-06-30T08:07:43.147Z] INFO: User aean logged in
+[2025-06-30T08:14:31.281Z] INFO: POST /api/auth/login
+[2025-06-30T08:14:31.349Z] INFO: User aean logged in
+[2025-06-30T08:14:31.387Z] INFO: GET /api/data
+[2025-06-30T08:14:31.395Z] INFO: GET /api/data
+[2025-06-30T08:31:01.937Z] INFO: Sensor data saved at 2025-04-23T04:39:33.000Z
+[2025-06-30T08:31:02.016Z] INFO: Sensor data saved at 2025-04-23T04:39:33.000Z
+[2025-06-30T08:50:05.434Z] INFO: GET /api/data/
+[2025-06-30T08:50:25.663Z] INFO: GET /api/data/hourly
+[2025-06-30T08:50:50.274Z] INFO: GET /api/data/realtime
+[2025-06-30T08:50:51.437Z] INFO: GET /api/data/realtime
+[2025-06-30T08:50:55.172Z] INFO: GET /api/data/
+[2025-06-30T08:51:30.108Z] INFO: GET /api/data/realtime
+[2025-06-30T08:52:38.671Z] INFO: GET /api/data/realtime
+[2025-06-30T08:54:10.188Z] INFO: 🚀 Server running at http://localhost:5000
+[2025-06-30T08:54:10.200Z] INFO: ✅ MongoDB connected
+[2025-06-30T08:54:10.208Z] INFO: Connected to MQTT broker
+[2025-06-30T08:54:10.214Z] INFO: Subscribed to topic: arec/solarpump
+[2025-06-30T08:54:10.264Z] INFO: Sensor data saved at 2025-04-23T04:39:33.000Z
+[2025-06-30T08:54:17.985Z] INFO: GET /api/data/realtime
+[2025-06-30T08:54:32.404Z] INFO: GET /api/data/hourly
+[2025-07-01T00:58:13.895Z] INFO: 🚀 Server running at http://localhost:5000
+[2025-07-01T00:58:13.920Z] INFO: ✅ MongoDB connected
+[2025-07-01T00:58:14.150Z] INFO: Connected to MQTT broker
+[2025-07-01T00:58:14.160Z] INFO: Subscribed to topic: arec/solarpump
+[2025-07-01T00:58:14.263Z] INFO: Sensor data saved at 2025-04-23T04:39:33.000Z
+[2025-07-01T00:59:07.023Z] INFO: 🚀 Server running at http://localhost:5000
+[2025-07-01T00:59:07.043Z] INFO: ✅ MongoDB connected
+[2025-07-01T00:59:07.167Z] INFO: Connected to MQTT broker
+[2025-07-01T00:59:07.179Z] INFO: Subscribed to topic: arec/pump
+[2025-07-01T00:59:09.621Z] INFO: Sensor data saved at 2025-07-01T00:58:22.000Z
+[2025-07-01T00:59:14.751Z] INFO: Sensor data saved at 2025-07-01T00:58:27.000Z
+[2025-07-01T00:59:19.728Z] INFO: Sensor data saved at 2025-07-01T00:58:32.000Z
+[2025-07-01T00:59:24.844Z] INFO: Sensor data saved at 2025-07-01T00:58:37.000Z
+[2025-07-01T00:59:30.008Z] INFO: Sensor data saved at 2025-07-01T00:58:42.000Z
+[2025-07-01T00:59:35.421Z] INFO: Sensor data saved at 2025-07-01T00:58:47.000Z
+[2025-07-01T00:59:40.077Z] INFO: Sensor data saved at 2025-07-01T00:58:52.000Z
+[2025-07-01T00:59:45.282Z] INFO: Sensor data saved at 2025-07-01T00:58:57.000Z
+[2025-07-01T00:59:50.291Z] INFO: Sensor data saved at 2025-07-01T00:59:02.000Z
+[2025-07-01T00:59:55.402Z] INFO: Sensor data saved at 2025-07-01T00:59:08.000Z
+[2025-07-01T01:00:00.430Z] INFO: Sensor data saved at 2025-07-01T00:59:13.000Z
+[2025-07-01T01:00:05.513Z] INFO: Sensor data saved at 2025-07-01T00:59:18.000Z
+[2025-07-01T01:00:10.597Z] INFO: Sensor data saved at 2025-07-01T00:59:23.000Z
+[2025-07-01T01:00:15.697Z] INFO: Sensor data saved at 2025-07-01T00:59:28.000Z
+[2025-07-01T01:00:20.776Z] INFO: Sensor data saved at 2025-07-01T00:59:33.000Z
+[2025-07-01T01:00:25.866Z] INFO: Sensor data saved at 2025-07-01T00:59:38.000Z
+[2025-07-01T01:00:31.224Z] INFO: Sensor data saved at 2025-07-01T00:59:43.000Z
+[2025-07-01T01:00:36.260Z] INFO: Sensor data saved at 2025-07-01T00:59:48.000Z
+[2025-07-01T01:00:41.127Z] INFO: Sensor data saved at 2025-07-01T00:59:53.000Z
