@@ -8,17 +8,10 @@ import {
   CssBaseline,
   IconButton,
   Divider,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  CircularProgress,
-  Card,
-  CardContent,
-  MenuItem,
-  Select,
   FormControl,
   InputLabel,
+  Select,
+  MenuItem,
   Grid,
   useTheme,
   Paper,
@@ -39,18 +32,14 @@ import {
   Switch
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
-import DashboardIcon from '@mui/icons-material/Dashboard';
 import BarChartIcon from '@mui/icons-material/BarChart';
-import LogoutIcon from '@mui/icons-material/Logout';
-import SavingsIcon from '@mui/icons-material/Savings';
 import WaterIcon from '@mui/icons-material/Water';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import ImageIcon from '@mui/icons-material/Image';
 import FileCopyIcon from '@mui/icons-material/FileCopy';
-import Brightness4Icon from '@mui/icons-material/Brightness4';
-import Brightness7Icon from '@mui/icons-material/Brightness7';
+import SavingsIcon from '@mui/icons-material/Savings';
 import API from '../api';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -63,6 +52,7 @@ import {
   Filler,
 } from 'chart.js';
 import * as XLSX from 'xlsx';
+import Sidebar from '../components/Sidebar';
 
 ChartJS.register(
   LineElement,
@@ -162,7 +152,6 @@ export default function ReportsPage() {
   const isXs = useMediaQuery(theme.breakpoints.down("sm"));
 
   const navigate = useNavigate();
-  const location = useLocation();
 
   // Fetch fuel and currency info for savings calculation
   useEffect(() => {
@@ -221,7 +210,6 @@ export default function ReportsPage() {
       }
     };
     fetchData();
-    // eslint-disable-next-line
   }, [aggregation, dateType, dateSingle, dateRangeStart, dateRangeEnd]);
 
   // Compute savings for an entry (uses total_flow as water volume)
@@ -235,69 +223,6 @@ export default function ReportsPage() {
       ac: (waterVolume * acRate).toFixed(2),
     };
   };
-
-  // Sidebar
-  const drawer = (
-    <div>
-      <Toolbar>
-        <Typography variant="h6" noWrap component="div" sx={{ fontWeight: 700, letterSpacing: 1 }}>
-          <img src="/logo192.png" alt="Logo" height={28} style={{ verticalAlign: "middle", marginRight: 8 }} />
-          My Dashboard
-        </Typography>
-      </Toolbar>
-      <Divider />
-      <List>
-        <ListItem
-          button
-          selected={location.pathname === '/dashboard'}
-          aria-current={location.pathname === '/dashboard' ? 'page' : undefined}
-          onClick={() => navigate('/dashboard')}
-        >
-          <ListItemIcon>
-            <DashboardIcon color="primary" />
-          </ListItemIcon>
-          <ListItemText primary="Overview" />
-        </ListItem>
-        <ListItem
-          button
-          selected={location.pathname === '/reports'}
-          aria-current={location.pathname === '/reports' ? 'page' : undefined}
-          onClick={() => navigate('/reports')}
-        >
-          <ListItemIcon>
-            <BarChartIcon color="primary" />
-          </ListItemIcon>
-          <ListItemText primary="Reports" />
-        </ListItem>
-      </List>
-      <Box sx={{ flexGrow: 1 }} />
-      <Divider sx={{ my: 2 }} />
-      <List>
-        <ListItem button onClick={() => {
-          localStorage.removeItem('token');
-          navigate('/');
-        }}>
-          <ListItemIcon>
-            <LogoutIcon color="error" />
-          </ListItemIcon>
-          <ListItemText primary="Logout" sx={{ color: theme.palette.error.main }} />
-        </ListItem>
-        <ListItem>
-          <MuiTooltip title="Dark Mode (coming soon!)">
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Brightness4Icon sx={{ color: theme.palette.grey[700], mr: 1 }} />
-              <Switch
-                checked={darkMode}
-                onChange={() => setDarkMode(x => !x)}
-                inputProps={{ 'aria-label': 'dark mode toggle' }}
-                color="default"
-              />
-            </Box>
-          </MuiTooltip>
-        </ListItem>
-      </List>
-    </div>
-  );
 
   // Chart Data - MULTIPLE SELECT
   const chartLabels = aggData.map(d => d._id || '');
@@ -458,13 +383,15 @@ export default function ReportsPage() {
         <Drawer variant="temporary" open={mobileOpen} onClose={() => setMobileOpen(!mobileOpen)}
           ModalProps={{ keepMounted: true }}
           sx={{ display: { xs: 'block', md: 'none' }, '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth } }}>
-          {drawer}
+          <Sidebar darkMode={darkMode} setDarkMode={setDarkMode} />
         </Drawer>
         <Drawer variant="permanent"
           sx={{
             display: { xs: 'none', md: 'block' },
             '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth, borderRight: '1px solid #e0e0e0', background: theme.palette.background.paper }
-          }} open>{drawer}</Drawer>
+          }} open>
+          <Sidebar darkMode={darkMode} setDarkMode={setDarkMode} />
+        </Drawer>
       </Box>
       <Box component="main" sx={{ flexGrow: 1, p: { xs: 2, md: 4 }, width: { md: `calc(100% - ${drawerWidth}px)` }, mt: { xs: 0, md: 0 } }}>
         <Stack direction={isXs ? "column" : "row"} spacing={isXs ? 2 : 3} alignItems="center" flexWrap="wrap" mb={3}>

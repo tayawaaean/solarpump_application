@@ -2,15 +2,10 @@ import { useEffect, useState } from 'react';
 import {
   Box,
   Drawer,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
   Toolbar,
   AppBar,
   Typography,
   IconButton,
-  Divider,
   CssBaseline,
   Card,
   CardContent,
@@ -27,9 +22,6 @@ import {
   Stack
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
-import DashboardIcon from '@mui/icons-material/Dashboard';
-import BarChartIcon from '@mui/icons-material/BarChart';
-import LogoutIcon from '@mui/icons-material/Logout';
 import OpacityIcon from '@mui/icons-material/Opacity';
 import FlashOnIcon from '@mui/icons-material/FlashOn';
 import SpeedIcon from '@mui/icons-material/Speed';
@@ -37,12 +29,11 @@ import OfflineBoltIcon from '@mui/icons-material/OfflineBolt';
 import FilterHdrIcon from '@mui/icons-material/FilterHdr';
 import WaterIcon from '@mui/icons-material/Water';
 import SavingsIcon from '@mui/icons-material/Savings';
-import Brightness4Icon from '@mui/icons-material/Brightness4';
-import Brightness7Icon from '@mui/icons-material/Brightness7';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Line } from 'react-chartjs-2';
 import API from '../api';
 import { useMqtt } from '../mqtt';
+import Sidebar from '../components/Sidebar';
 
 import {
   Chart as ChartJS,
@@ -126,7 +117,6 @@ export default function DashboardPage() {
   const [darkMode, setDarkMode] = useState(false);
 
   const navigate = useNavigate();
-  const location = useLocation();
   const theme = useTheme();
   const isXs = useMediaQuery(theme.breakpoints.down("sm"));
 
@@ -202,7 +192,6 @@ export default function DashboardPage() {
     fetchUsdToPhp();
     const interval = setInterval(fetchUsdToPhp, 60 * 60 * 1000);
     return () => clearInterval(interval);
-    // eslint-disable-next-line
   }, []);
 
   // Daily reset logic: resets at midnight
@@ -263,7 +252,6 @@ export default function DashboardPage() {
         }
       }
     }
-    // eslint-disable-next-line
   }, [lastMessage, energyBase, waterBase]);
 
   // Compute savings rates from live fuel prices and USD→PHP
@@ -281,7 +269,6 @@ export default function DashboardPage() {
       diesel: (waterPumped * rates.diesel).toFixed(2),
       ac: (waterPumped * rates.ac).toFixed(2)
     });
-    // eslint-disable-next-line
   }, [waterPumped, fuelPrices, usdToPhp]);
 
   // Fading animation for savings card (auto-advance every 3s)
@@ -297,7 +284,6 @@ export default function DashboardPage() {
       }, 350);
     }, 3000);
     return () => clearTimeout(timer);
-    // eslint-disable-next-line
   }, [savingsType]);
 
   // Price edit handlers
@@ -322,11 +308,6 @@ export default function DashboardPage() {
       setFuelError('Failed to update prices');
       setFuelLoading(false);
     }
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    navigate('/');
   };
 
   const handleChangeSavingsType = (type) => {
@@ -373,64 +354,6 @@ export default function DashboardPage() {
       decimal: 2,
     }
   ];
-
-  const drawer = (
-    <div>
-      <Toolbar>
-        <Typography variant="h6" noWrap component="div" sx={{ fontWeight: 700, letterSpacing: 1 }}>
-          <img src="/logo192.png" alt="Logo" height={28} style={{ verticalAlign: "middle", marginRight: 8 }} />
-          My Dashboard
-        </Typography>
-      </Toolbar>
-      <Divider />
-      <List>
-        <ListItem
-          button
-          selected={location.pathname === '/dashboard'}
-          aria-current={location.pathname === '/dashboard' ? 'page' : undefined}
-          onClick={() => navigate('/dashboard')}
-        >
-          <ListItemIcon>
-            <DashboardIcon color="primary" />
-          </ListItemIcon>
-          <ListItemText primary="Overview" />
-        </ListItem>
-        <ListItem
-          button
-          selected={location.pathname === '/reports'}
-          onClick={() => navigate('/reports')}
-        >
-          <ListItemIcon>
-            <BarChartIcon color="primary" />
-          </ListItemIcon>
-          <ListItemText primary="Reports" />
-        </ListItem>
-      </List>
-      <Box sx={{ flexGrow: 1 }} />
-      <Divider sx={{ my: 2 }} />
-      <List>
-        <ListItem>
-          <MuiTooltip title="Dark Mode (coming soon!)">
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Brightness4Icon sx={{ color: theme.palette.grey[700], mr: 1 }} />
-              <Switch
-                checked={darkMode}
-                onChange={() => setDarkMode(x => !x)}
-                inputProps={{ 'aria-label': 'dark mode toggle' }}
-                color="default"
-              />
-            </Box>
-          </MuiTooltip>
-        </ListItem>
-        <ListItem button onClick={handleLogout}>
-          <ListItemIcon>
-            <LogoutIcon color="error" />
-          </ListItemIcon>
-          <ListItemText primary="Logout" sx={{ color: theme.palette.error.main }} />
-        </ListItem>
-      </List>
-    </div>
-  );
 
   const renderChartCard = (config, idx) => {
     const value = series[config.dataKey][series[config.dataKey].length - 1];
@@ -548,13 +471,15 @@ export default function DashboardPage() {
         <Drawer variant="temporary" open={mobileOpen} onClose={() => setMobileOpen(!mobileOpen)}
           ModalProps={{ keepMounted: true }}
           sx={{ display: { xs: 'block', md: 'none' }, '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth } }}>
-          {drawer}
+          <Sidebar darkMode={darkMode} setDarkMode={setDarkMode} />
         </Drawer>
         <Drawer variant="permanent"
           sx={{
             display: { xs: 'none', md: 'block' },
             '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth, borderRight: '1px solid #e0e0e0', background: theme.palette.background.paper }
-          }} open>{drawer}</Drawer>
+          }} open>
+          <Sidebar darkMode={darkMode} setDarkMode={setDarkMode} />
+        </Drawer>
       </Box>
       <Box component="main" sx={{ flexGrow: 1, p: { xs: 2, md: 4 }, width: { md: `calc(100% - ${drawerWidth}px)` }, mt: { xs: 0, md: 0 } }}>
         {/* Fuel Price Box */}

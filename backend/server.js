@@ -9,6 +9,7 @@ const dataRoutes = require('./routes/dataRoutes');
 const authRoutes = require('./routes/authRoutes');
 const gasPriceRoutes = require('./routes/gasPriceRoutes');
 const currencyRoutes = require('./routes/currencyRoutes');
+const electricityPriceRoutes = require('./routes/electricityPriceRoutes');
 require('./mqtt/mqttClient');
 
 const app = express();
@@ -32,6 +33,7 @@ app.use('/api/data', dataRoutes); // Protected
 app.use('/api/auth', authRoutes); // Public
 app.use('/api/gasprice', gasPriceRoutes); // New endpoint: /api/gasprice/philippines
 app.use('/api/currency', currencyRoutes);
+app.use('/api/electricityprice', electricityPriceRoutes);
 
 
 
