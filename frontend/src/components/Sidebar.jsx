@@ -23,8 +23,7 @@ import {
       <div>
         <Toolbar>
           <span style={{ fontWeight: 700, letterSpacing: 1 }}>
-            <img src="/logo192.png" alt="Logo" height={28} style={{ verticalAlign: "middle", marginRight: 8 }} />
-            My Dashboard
+            <img src="/logo.jpg" alt="Logo" height={150} style={{ verticalAlign: "middle", marginRight: 8 }} />
           </span>
         </Toolbar>
         <Divider />
