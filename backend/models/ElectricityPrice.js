@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const ElectricityPriceSchema = new mongoose.Schema({
-  pricePerKwh: { type: Number, default: 10 },
+  price: { type: Number, required: true }, // PHP per kWh
   updatedAt: { type: Date, default: Date.now }
 });
 

@@ -1,8 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const controller = require('../controllers/electricityPriceController');
+const auth = require('../auth/authMiddleware');
+const { getElectricityPrice, updateElectricityPrice } = require('../controllers/electricityPriceController');
 
-router.get('/', controller.getElectricityPrice);
-router.patch('/update', controller.updateElectricityPrice);
+// Public: Get current electricity price
+router.get('/', getElectricityPrice);
+
+// Protected: Update electricity price (admin only, or add necessary middleware)
+router.patch('/update', auth, updateElectricityPrice);
 
 module.exports = router;

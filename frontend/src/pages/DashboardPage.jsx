@@ -1,25 +1,8 @@
 import { useEffect, useState } from 'react';
 import {
-  Box,
-  Drawer,
-  Toolbar,
-  AppBar,
-  Typography,
-  IconButton,
-  CssBaseline,
-  Card,
-  CardContent,
-  Grid,
-  useTheme,
-  CircularProgress,
-  Switch,
-  FormControlLabel,
-  Fade,
-  ButtonGroup,
-  Button,
-  Tooltip as MuiTooltip,
-  useMediaQuery,
-  Stack
+  Box, Drawer, Toolbar, AppBar, Typography, IconButton, CssBaseline, Card, CardContent,
+  Grid, useTheme, CircularProgress, Switch, FormControlLabel,TextField, Fade, ButtonGroup, Button,
+  Tooltip as MuiTooltip, useMediaQuery
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import OpacityIcon from '@mui/icons-material/Opacity';
@@ -36,23 +19,10 @@ import { useMqtt } from '../mqtt';
 import Sidebar from '../components/Sidebar';
 
 import {
-  Chart as ChartJS,
-  LineElement,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  Tooltip,
-  Legend
+  Chart as ChartJS, LineElement, CategoryScale, LinearScale, PointElement, Tooltip, Legend
 } from 'chart.js';
 
-ChartJS.register(
-  LineElement,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  Tooltip,
-  Legend
-);
+ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Tooltip, Legend);
 
 const drawerWidth = 220;
 
@@ -75,7 +45,7 @@ const PUMP_COLORS = {
 };
 
 export default function DashboardPage() {
-  // Sensor/Chart State
+  // State
   const [mobileOpen, setMobileOpen] = useState(false);
   const [series, setSeries] = useState({
     voltage: Array(20).fill(0),
@@ -128,15 +98,32 @@ export default function DashboardPage() {
     password: 'arecmqtt'
   });
 
+  // Fetch chart data
   const fetchData = async () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      await API.get('/data', {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+      const res = await API.get('/data', {
+        headers: { Authorization: `Bearer ${token}` }
       });
+      const data = res.data.reverse();
+      setSeries({
+        voltage: data.map(d => d.filtered_voltage ?? 0).slice(-20),
+        current: data.map(d => d.filtered_current ?? 0).slice(-20),
+        power: data.map(d => d.power ?? 0).slice(-20),
+        waterflow: data.map(d => d.flow ?? 0).slice(-20)
+      });
+      if (data.length > 0) {
+        setLastRealtime(data[data.length - 1].time || "N/A");
+        if (data[data.length - 1].accumulated_energy_wh != null) {
+          setEnergyBase(data[0].accumulated_energy_wh);
+          setAccumulatedEnergy(Math.max(0, (data[data.length - 1].accumulated_energy_wh - data[0].accumulated_energy_wh) / 1000));
+        }
+        if (data[data.length - 1].total_water_volume != null) {
+          setWaterBase(data[0].total_water_volume);
+          setWaterPumped(Math.max(0, data[data.length - 1].total_water_volume - data[0].total_water_volume));
+        }
+      }
     } catch (err) {
       console.error(err);
       navigate('/');
@@ -145,7 +132,7 @@ export default function DashboardPage() {
     }
   };
 
-  // Fetch fuel prices (API)
+  // Fetch fuel prices (gasoline, diesel)
   const fetchFuelPrices = async () => {
     setFuelLoading(true);
     try {
@@ -153,23 +140,33 @@ export default function DashboardPage() {
         API.get('/gasprice/gasoline'),
         API.get('/gasprice/diesel')
       ]);
-      const acPrice = localStorage.getItem('ac_price') || '15';
-      setFuelPrices({
-        gasoline: parseFloat(gasRes.data.price),
-        diesel: parseFloat(dieselRes.data.price),
-        ac: parseFloat(acPrice)
-      });
-      setEditPrices({
+      setFuelPrices(prev => ({
+        ...prev,
+        gasoline: parseFloat(gasRes.data.price), // USD/L
+        diesel: parseFloat(dieselRes.data.price) // USD/L
+      }));
+      setEditPrices(prev => ({
+        ...prev,
         gasoline: gasRes.data.price,
-        diesel: dieselRes.data.price,
-        ac: acPrice
-      });
+        diesel: dieselRes.data.price
+      }));
       setFuelError('');
     } catch (err) {
       setFuelError('Failed to fetch fuel prices');
       console.error(err);
     } finally {
       setFuelLoading(false);
+    }
+  };
+
+  // Fetch AC price (PHP/kWh)
+  const fetchACPrice = async () => {
+    try {
+      const res = await API.get('/electricityprice');
+      setFuelPrices(prev => ({ ...prev, ac: res.data.price }));
+      setEditPrices(prev => ({ ...prev, ac: res.data.price }));
+    } catch (err) {
+      setFuelError('Failed to fetch AC price');
     }
   };
 
@@ -189,6 +186,7 @@ export default function DashboardPage() {
   useEffect(() => {
     fetchData();
     fetchFuelPrices();
+    fetchACPrice();
     fetchUsdToPhp();
     const interval = setInterval(fetchUsdToPhp, 60 * 60 * 1000);
     return () => clearInterval(interval);
@@ -258,7 +256,7 @@ export default function DashboardPage() {
   const computePumpSavingsRates = () => ({
     gasoline: fuelPrices.gasoline ? (fuelPrices.gasoline * usdToPhp) / 20 : 64 / 20,
     diesel: fuelPrices.diesel ? (fuelPrices.diesel * usdToPhp) / 25 : 60 / 25,
-    ac: fuelPrices.ac ? fuelPrices.ac / 40 : 15 / 40
+    ac: fuelPrices.ac ? fuelPrices.ac / 40 : 15 / 40 // AC price is PHP/kWh, no conversion
   });
 
   // Calculate all savings types (per day) in PHP based on water pumped
@@ -293,6 +291,7 @@ export default function DashboardPage() {
   const handleSavePrices = async () => {
     setFuelLoading(true);
     try {
+      // Update gasoline and diesel
       await API.patch('/gasprice/update', {
         type: 'gasoline',
         price: parseFloat(editPrices.gasoline)
@@ -301,9 +300,16 @@ export default function DashboardPage() {
         type: 'diesel',
         price: parseFloat(editPrices.diesel)
       });
-      localStorage.setItem('ac_price', editPrices.ac);
+      // Update AC price (in PHP/kWh)
+      const token = localStorage.getItem('token');
+      await API.patch('/electricityprice/update', {
+        price: parseFloat(editPrices.ac)
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setEditMode(false);
       fetchFuelPrices();
+      fetchACPrice();
     } catch (err) {
       setFuelError('Failed to update prices');
       setFuelLoading(false);
@@ -391,12 +397,12 @@ export default function DashboardPage() {
                 {config.unit}
               </Typography>
             </Box>
-            {allZero ? (
-              <Typography color="text.secondary" sx={{ textAlign: "center", my: 4 }}>
-                No data available yet.
-              </Typography>
-            ) : (
-              <Box sx={{ flex: 1, minHeight: 110, maxHeight: 160 }}>
+            <Box sx={{ flex: 1, minHeight: 110, maxHeight: 160, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {allZero ? (
+                <Typography color="text.secondary" sx={{ textAlign: "center", width: '100%' }}>
+                  No data available yet.
+                </Typography>
+              ) : (
                 <Line
                   data={{
                     labels: timeLabels,
@@ -425,8 +431,8 @@ export default function DashboardPage() {
                   }}
                   height={110}
                 />
-              </Box>
-            )}
+              )}
+            </Box>
             <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block', textAlign: 'right' }}>
               {allZero ? "" : `Last updated: ${lastRealtime}`}
             </Typography>
@@ -484,216 +490,249 @@ export default function DashboardPage() {
       <Box component="main" sx={{ flexGrow: 1, p: { xs: 2, md: 4 }, width: { md: `calc(100% - ${drawerWidth}px)` }, mt: { xs: 0, md: 0 } }}>
         {/* Fuel Price Box */}
         <Box
+  sx={{
+    my: 2,
+    p: { xs: 2, md: 3 },
+    border: '1px solid',
+    borderColor: theme.palette.divider,
+    borderRadius: 3,
+    bgcolor: theme.palette.background.paper,
+    boxShadow: 2,
+    minHeight: 90,
+  }}
+>
+  <Typography
+    variant="h5"
+    sx={{
+      mb: 2,
+      fontWeight: 800,
+      letterSpacing: 1,
+      color: theme.palette.primary.main,
+      textShadow: '0 1px 2px rgba(0,0,0,0.03)'
+    }}
+  >
+    Fuel & Electricity Prices
+  </Typography>
+  <Box
+    sx={{
+      display: "flex",
+      flexDirection: { xs: "column", sm: "row" },
+      alignItems: { xs: "flex-start", sm: "center" },
+      gap: 4,
+      justifyContent: "space-between",
+      flexWrap: "wrap"
+    }}
+  >
+    {/* Gasoline */}
+    <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 220, px: 1 }}>
+      <Typography sx={{ minWidth: 94, fontWeight: 700, color: "#ef5350" }}>
+        ⛽ Gasoline:  
+      </Typography>
+      {fuelLoading ? (
+        <CircularProgress size={18} />
+      ) : editMode ? (
+        <TextField
+          type="number"
+          size="small"
+          variant="outlined"
+          label="USD/L"
+          value={editPrices.gasoline}
+          onChange={e => handleEditChange('gasoline', e.target.value)}
+          inputProps={{
+            step: "0.001",
+            min: "0",
+          }}
           sx={{
-            my: 2,
-            p: { xs: 2, md: 3 },
-            border: '1px solid',
-            borderColor: theme.palette.divider,
-            borderRadius: 3,
-            bgcolor: theme.palette.background.paper,
-            boxShadow: 2,
-            minHeight: 90,
+            width: 90,
+            mr: 1,
+            '& input': { fontWeight: 700 }
+          }}
+          error={editPrices.gasoline !== '' && Number(editPrices.gasoline) <= 0}
+          helperText={editPrices.gasoline !== '' && Number(editPrices.gasoline) <= 0 ? "Enter a valid price" : ""}
+        />
+      ) : (
+        <Typography
+          sx={{
+            fontWeight: 900,
+            fontSize: 22,
+            color: "#222"
           }}
         >
-          <Typography
-            variant="h5"
-            sx={{
-              mb: 2,
-              fontWeight: 800,
-              letterSpacing: 1,
-              color: theme.palette.primary.main,
-              textShadow: '0 1px 2px rgba(0,0,0,0.03)'
-            }}
-          >
-            Fuel & Electricity Prices
+          ₱{fuelPrices.gasoline && usdToPhp
+            ? (fuelPrices.gasoline * usdToPhp).toFixed(2)
+            : '...'
+          }
+          <Typography component="span" sx={{ fontWeight: 500, color: "#888", fontSize: 14, ml: 1 }}>
+            /L
           </Typography>
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: { xs: "column", sm: "row" },
-              alignItems: { xs: "flex-start", sm: "center" },
-              gap: 4,
-              justifyContent: "space-between",
-              flexWrap: "wrap"
-            }}
+          <Typography component="span" sx={{ fontWeight: 400, color: "#aaa", fontSize: 13, ml: 1 }}>
+            ({fuelPrices.gasoline ?? '...'} USD/L)
+          </Typography>
+        </Typography>
+      )}
+    </Box>
+    {/* Diesel */}
+    <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 220, px: 1 }}>
+      <Typography sx={{ minWidth: 72, fontWeight: 700, color: "#8d6e63" }}>
+        🚚 Diesel:
+      </Typography>
+      {fuelLoading ? (
+        <CircularProgress size={18} />
+      ) : editMode ? (
+        <TextField
+          type="number"
+          size="small"
+          variant="outlined"
+          label="USD/L"
+          value={editPrices.diesel}
+          onChange={e => handleEditChange('diesel', e.target.value)}
+          inputProps={{
+            step: "0.001",
+            min: "0",
+          }}
+          sx={{
+            width: 90,
+            mr: 1,
+            '& input': { fontWeight: 700 }
+          }}
+          error={editPrices.diesel !== '' && Number(editPrices.diesel) <= 0}
+          helperText={editPrices.diesel !== '' && Number(editPrices.diesel) <= 0 ? "Enter a valid price" : ""}
+        />
+      ) : (
+        <Typography
+          sx={{
+            fontWeight: 900,
+            fontSize: 22,
+            color: "#222"
+          }}
+        >
+          ₱{fuelPrices.diesel && usdToPhp
+            ? (fuelPrices.diesel * usdToPhp).toFixed(2)
+            : '...'
+          }
+          <Typography component="span" sx={{ fontWeight: 500, color: "#888", fontSize: 14, ml: 1 }}>
+            /L
+          </Typography>
+          <Typography component="span" sx={{ fontWeight: 400, color: "#aaa", fontSize: 13, ml: 1 }}>
+            ({fuelPrices.diesel ?? '...'} USD/L)
+          </Typography>
+        </Typography>
+      )}
+    </Box>
+    {/* Electricity (AC) */}
+    <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 210, px: 1 }}>
+      <Typography sx={{ minWidth: 86, fontWeight: 700, color: "#42a5f5" }}>
+        ⚡ Electricity:
+      </Typography>
+      {fuelLoading ? (
+        <CircularProgress size={18} />
+      ) : editMode ? (
+        <TextField
+          type="number"
+          size="small"
+          variant="outlined"
+          label="₱/kWh"
+          value={editPrices.ac}
+          onChange={e => handleEditChange('ac', e.target.value)}
+          inputProps={{
+            step: "0.01",
+            min: "0",
+          }}
+          sx={{
+            width: 90,
+            mr: 1,
+            '& input': { fontWeight: 700 }
+          }}
+          error={editPrices.ac !== '' && Number(editPrices.ac) <= 0}
+          helperText={editPrices.ac !== '' && Number(editPrices.ac) <= 0 ? "Enter a valid price" : ""}
+        />
+      ) : (
+        <Typography
+          sx={{
+            fontWeight: 900,
+            fontSize: 22,
+            color: "#222"
+          }}
+        >
+          ₱{fuelPrices.ac ?? '...'}
+          <Typography component="span" sx={{ fontWeight: 500, color: "#888", fontSize: 14, ml: 1 }}>
+            /kWh
+          </Typography>
+        </Typography>
+      )}
+    </Box>
+    {/* USD to PHP */}
+    <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 170, px: 1 }}>
+      <Typography sx={{ minWidth: 86, fontWeight: 700, color: "#1976d2" }}>
+        💱 USD→PHP:
+      </Typography>
+      {currencyLoading ? (
+        <CircularProgress size={18} />
+      ) : (
+        <Typography
+          sx={{
+            fontWeight: 700,
+            fontSize: 20,
+            color: "#1976d2"
+          }}
+        >
+          ₱{usdToPhp}
+        </Typography>
+      )}
+    </Box>
+    {/* Edit/Save Buttons */}
+    <Box
+      sx={{
+        ml: { xs: 0, sm: 1 },
+        mt: { xs: 2, sm: 0 },
+        alignSelf: { xs: "flex-start", sm: "center" },
+        display: "flex",
+        flexDirection: "row",
+        gap: 1,
+      }}
+    >
+      {editMode ? (
+        <>
+          <Button
+            variant="contained"
+            size="small"
+            color="primary"
+            sx={{ fontWeight: 700 }}
+            onClick={handleSavePrices}
+            disabled={
+              [editPrices.gasoline, editPrices.diesel, editPrices.ac].some(
+                v => v === '' || Number(v) <= 0
+              ) || fuelLoading
+            }
           >
-            {/* Gasoline */}
-            <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 220, px: 1 }}>
-              <Typography sx={{ minWidth: 94, fontWeight: 700, color: "#ef5350" }}>
-                ⛽ Gasoline:  
-              </Typography>
-              {fuelLoading ? (
-                <CircularProgress size={18} />
-              ) : editMode ? (
-                <input
-                  type="number"
-                  step="0.001"
-                  value={editPrices.gasoline}
-                  onChange={e => handleEditChange('gasoline', e.target.value)}
-                  style={{
-                    width: 80,
-                    marginRight: 8,
-                    border: '1px solid #ddd',
-                    borderRadius: 4,
-                    padding: '3px 8px'
-                  }}
-                />
-              ) : (
-                <Typography
-                  sx={{
-                    fontWeight: 900,
-                    fontSize: 22,
-                    color: "#222"
-                  }}
-                >
-                  ₱{fuelPrices.gasoline && usdToPhp
-                    ? (fuelPrices.gasoline * usdToPhp).toFixed(2)
-                    : '...'
-                  }
-                  <Typography component="span" sx={{ fontWeight: 500, color: "#888", fontSize: 14, ml: 1 }}>
-                    /L
-                  </Typography>
-                  <Typography component="span" sx={{ fontWeight: 400, color: "#aaa", fontSize: 13, ml: 1 }}>
-                    ({fuelPrices.gasoline ?? '...'} USD/L)
-                  </Typography>
-                </Typography>
-              )}
-            </Box>
-            {/* Diesel */}
-            <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 220, px: 1 }}>
-              <Typography sx={{ minWidth: 72, fontWeight: 700, color: "#8d6e63" }}>
-                🚚 Diesel:
-              </Typography>
-              {fuelLoading ? (
-                <CircularProgress size={18} />
-              ) : editMode ? (
-                <input
-                  type="number"
-                  step="0.001"
-                  value={editPrices.diesel}
-                  onChange={e => handleEditChange('diesel', e.target.value)}
-                  style={{
-                    width: 80,
-                    marginRight: 8,
-                    border: '1px solid #ddd',
-                    borderRadius: 4,
-                    padding: '3px 8px'
-                  }}
-                />
-              ) : (
-                <Typography
-                  sx={{
-                    fontWeight: 900,
-                    fontSize: 22,
-                    color: "#222"
-                  }}
-                >
-                  ₱{fuelPrices.diesel && usdToPhp
-                    ? (fuelPrices.diesel * usdToPhp).toFixed(2)
-                    : '...'
-                  }
-                  <Typography component="span" sx={{ fontWeight: 500, color: "#888", fontSize: 14, ml: 1 }}>
-                    /L
-                  </Typography>
-                  <Typography component="span" sx={{ fontWeight: 400, color: "#aaa", fontSize: 13, ml: 1 }}>
-                    ({fuelPrices.diesel ?? '...'} USD/L)
-                  </Typography>
-                </Typography>
-              )}
-            </Box>
-            {/* Electricity (AC) */}
-            <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 210, px: 1 }}>
-              <Typography sx={{ minWidth: 86, fontWeight: 700, color: "#42a5f5" }}>
-                ⚡ Electricity:
-              </Typography>
-              {fuelLoading ? (
-                <CircularProgress size={18} />
-              ) : editMode ? (
-                <input
-                  type="number"
-                  step="0.01"
-                  value={editPrices.ac}
-                  onChange={e => handleEditChange('ac', e.target.value)}
-                  style={{
-                    width: 80,
-                    marginRight: 8,
-                    border: '1px solid #ddd',
-                    borderRadius: 4,
-                    padding: '3px 8px'
-                  }}
-                />
-              ) : (
-                <Typography
-                  sx={{
-                    fontWeight: 900,
-                    fontSize: 22,
-                    color: "#222"
-                  }}
-                >
-                  ₱{fuelPrices.ac ?? '...'}
-                  <Typography component="span" sx={{ fontWeight: 500, color: "#888", fontSize: 14, ml: 1 }}>
-                    /kWh
-                  </Typography>
-                </Typography>
-              )}
-            </Box>
-            {/* USD to PHP */}
-            <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 170, px: 1 }}>
-              <Typography sx={{ minWidth: 86, fontWeight: 700, color: "#1976d2" }}>
-                💱 USD→PHP:
-              </Typography>
-              {currencyLoading ? (
-                <CircularProgress size={18} />
-              ) : (
-                <Typography
-                  sx={{
-                    fontWeight: 700,
-                    fontSize: 20,
-                    color: "#1976d2"
-                  }}
-                >
-                  ₱{usdToPhp}
-                </Typography>
-              )}
-            </Box>
-            {/* Edit/Save Buttons */}
-            <Box sx={{ ml: { xs: 0, sm: 1 }, mt: { xs: 2, sm: 0 }, alignSelf: { xs: "flex-start", sm: "center" } }}>
-              {editMode ? (
-                <>
-                  <Button
-                    variant="contained"
-                    size="small"
-                    color="primary"
-                    sx={{ fontWeight: 700, mr: 1 }}
-                    onClick={handleSavePrices}
-                  >
-                    Save
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    color="secondary"
-                    sx={{ fontWeight: 700 }}
-                    onClick={() => setEditMode(false)}
-                  >
-                    Cancel
-                  </Button>
-                </>
-              ) : (
-                <Button
-                  variant="outlined"
-                  size="small"
-                  color="primary"
-                  sx={{ fontWeight: 700 }}
-                  onClick={() => setEditMode(true)}
-                >
-                  Edit Prices
-                </Button>
-              )}
-            </Box>
-          </Box>
-          {fuelError && <Typography color="error" sx={{ mt: 1, fontWeight: 700 }}>{fuelError}</Typography>}
-        </Box>
+            Save
+          </Button>
+          <Button
+            variant="outlined"
+            size="small"
+            color="secondary"
+            sx={{ fontWeight: 700 }}
+            onClick={() => setEditMode(false)}
+            disabled={fuelLoading}
+          >
+            Cancel
+          </Button>
+        </>
+      ) : (
+        <Button
+          variant="outlined"
+          size="small"
+          color="primary"
+          sx={{ fontWeight: 700 }}
+          onClick={() => setEditMode(true)}
+        >
+          Edit Prices
+        </Button>
+      )}
+    </Box>
+  </Box>
+  {fuelError && <Typography color="error" sx={{ mt: 1, fontWeight: 700 }}>{fuelError}</Typography>}
+</Box>
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 300 }}>
             <CircularProgress />
